@@ -1,0 +1,7 @@
+{
+  "name": "maxiPlay",
+  "displayName": "maxiPlay",
+  "android": {
+    "package": "com.anonymous.maxiplay"
+  }
+}

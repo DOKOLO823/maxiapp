@@ -1,0 +1,138 @@
+//  const handleSubmit = async (
+//   values: NewUser,
+//   actions: FormikHelpers<NewUser>,
+// ) => {
+//   try {
+//     console.log("Submitting values:", values);
+
+//     const response = await axios.post(
+//       "https://maxiplay-server.onrender.com/auth/create",
+//       {
+//        ...values
+//       },
+     
+//     );
+
+//     console.log("✅ Success:", response.data);
+//     // actions.resetForm();
+//   } catch (error: any) {
+//     if (error.response) {
+//       console.log("❌ Server Error:", error.response.data);
+//       console.log("Status:", error.response.status);
+//     } else {
+//       console.log("❌ Network/Other Error:", error.message);
+//     }
+//   }
+// };
+
+// src/config/api.js
+// const DEV_URL = "http://10.0.2.2:8989"; // Local backend (Android emulator)
+// const PROD_URL = "https://maxiplay-server.onrender.com"; // Render deployed API
+
+// export const API_BASE_URL =
+//   process.env.NODE_ENV === "production" ? PROD_URL : DEV_URL;
+
+// use case
+//   import axios from "axios";
+// import { API_BASE_URL } from "../config/api"; // adjust path as needed
+
+// const handleSubmit = async (values, actions) => {
+//   try {
+//     const response = await axios.post(`${API_BASE_URL}/auth/create`, values);
+//     console.log(response.data);
+//   } catch (error) {
+//     console.log("Sign up error:", error);
+//   }
+// };
+
+
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { FC, useEffect } from 'react';
+import AuthNavigator from './AuthNavigator';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  getAuthState,
+  updateLoggedInState,
+  updateProfile,
+} from 'src/store/auth';
+import TabNavigator from './TabNavigator';
+import { getFromAsyncStorage, Keys } from '@utils/asyncStorage';
+import client from 'src/api/client';
+import { View } from 'react-native';
+import Loader from '@ui/loader';
+import colors from '@utils/colors';
+
+interface Props {}
+
+const AppTheme = {
+    ...DefaultTheme,
+    colors: {
+        ...DefaultTheme.colors,
+        background: colors.PRIMARY,
+        primary: colors.CONTRAST
+    }
+}
+
+const AppNavigator: FC<Props> = props => {
+  const { loggedIn, busy } = useSelector(getAuthState);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchAuthInfo = async () => {
+      dispatch(updateLoggedInState(true));
+      try {
+        const token = await getFromAsyncStorage(Keys.AUTH_TOKEN);
+        if (!token) {
+          return dispatch(updateLoggedInState(false));
+        }
+
+        const { data } = await client.get('/auth/is-auth', {
+          headers: {
+            Authorization: 'Bearer ' + token,
+          },
+        });
+
+        // console.log('My auth Profile: ', data);
+        dispatch(updateProfile(data.profile));
+        dispatch(updateLoggedInState(true));
+      } catch (error: any) {
+        if (error.response) {
+          console.log('❌ Server Error:', error.response.data);
+          console.log('Status:', error.response.status);
+        } else {
+          console.log('❌ Network/Other Error: auth/is-auth', error.message);
+        }
+      }
+      dispatch(updateLoggedInState(false));
+    };
+
+    fetchAuthInfo();
+  }, []);
+
+  return (
+    <NavigationContainer theme={AppTheme}>
+      {busy ? (
+        <View
+          style={{
+            // ...StyleSheet.absoluteFillObject,
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: colors.OVERLAY,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1,
+          }}
+        >
+          <Loader />
+        </View>
+      ) : null}
+      {loggedIn ? <TabNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;
