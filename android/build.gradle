@@ -1,3 +1,5 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
     ext {
         buildToolsVersion = "36.0.0"
@@ -7,30 +9,29 @@ buildscript {
         ndkVersion = "29.0.14033849"
         kotlinVersion = "2.1.20"
     }
-    
     repositories {
-        maven { url 'https://jitpack.io' }
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
+        // Il est recommandé d'ajouter une version spécifique ici, par ex: '8.1.4'
+        classpath("com.android.tools.build:gradle:8.1.4")
         classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }
+}
 
-    allprojects {
+allprojects {
     repositories {
-        mavenCentral()
         google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
-
     tasks.withType(JavaCompile) {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-}
-
 }
 
 apply plugin: "com.facebook.react.rootproject"

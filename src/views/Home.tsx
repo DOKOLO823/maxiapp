@@ -1,5 +1,6 @@
 import AppView from '@components/AppView';
 import LatestUploads from '@components/LatestUploads';
+import MiniAudioPlayer from '@components/MiniAudioPlayer';
 import OptionsModal from '@components/OptionsModal';
 import PlaylistForm, { PlaylistInfo } from '@components/PlaylistForm';
 import PlayListModal from '@components/PlaylistModal';
@@ -9,12 +10,11 @@ import RecommendedPlaylist from '@components/RecommendedPlaylist';
 import colors from '@utils/colors';
 import { FC, useState } from 'react';
 import { StyleSheet, Pressable, Text, ScrollView, View } from 'react-native';
-// import TrackPlayer from 'react-native-track-player';
 import MaterialComIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch } from 'react-redux';
 import { AudioData, Playlist } from 'src/@types/audio';
 import catchAsyncError from 'src/api/catchError';
-import client from 'src/api/client'; // <-- modification ici
+import client from 'src/api/client';
 import { useFetchPlaylist } from 'src/hooks/query';
 import useAudioController from 'src/hooks/useAudioController';
 import { upldateNotification } from 'src/store/notification';
@@ -23,13 +23,12 @@ import {
   updateSelectedListId,
 } from 'src/store/playlistModal';
 
-interface Props {}
-
-const Home: FC<Props> = () => {
+const Home: FC = () => {
   const [showOptions, setShowOptions] = useState(false);
   const [selectedAudio, setSelectedAudio] = useState<AudioData>();
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [showPlaylistForm, setShowPlaylistForm] = useState(false);
+
   const { onAudioPress } = useAudioController();
   const { data } = useFetchPlaylist();
   const dispatch = useDispatch();
@@ -65,12 +64,11 @@ const Home: FC<Props> = () => {
     if (!value.title.trim()) return;
 
     try {
-      const { data: response } = await client.post('/playlist/create', {
+      await client.post('/playlist/create', {
         resId: selectedAudio?.id,
         title: value.title,
         visibility: value.private ? 'private' : 'public',
       });
-      console.log(response);
     } catch (error) {
       const errorMessage = catchAsyncError(error);
       console.log(errorMessage);
@@ -79,7 +77,7 @@ const Home: FC<Props> = () => {
 
   const updatePlaylist = async (item: Playlist) => {
     try {
-      const { data: response } = await client.patch('/playlist', {
+      await client.patch('/playlist', {
         id: item.id,
         item: selectedAudio?.id,
         title: item.title,
@@ -171,22 +169,15 @@ const Home: FC<Props> = () => {
           onSubmit={handlePlaylistSubmit}
         />
       </ScrollView>
+      <MiniAudioPlayer />
     </AppView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 10,
-  },
-  space: {
-    marginBottom: 15,
-  },
-  optionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
+  container: { padding: 10 },
+  space: { marginBottom: 15 },
+  optionContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
   optionLabel: { color: colors.PRIMARY, fontSize: 16, marginLeft: 5 },
 });
 

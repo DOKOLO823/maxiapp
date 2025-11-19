@@ -2,25 +2,27 @@ import AudioListItem from '@ui/AudioListItem';
 import AudioListLoadingUI from '@ui/AudioListLoadingUI';
 import EmptyRecords from '@ui/EmptyRecords';
 import colors from '@utils/colors';
-import {FC} from 'react';
-import {View, StyleSheet, Text, ScrollView} from 'react-native';
-import {RefreshControl} from 'react-native-gesture-handler';
-import {useQueryClient} from '@tanstack/react-query';
-import {useSelector} from 'react-redux';
-import {useFetchFavorite} from 'src/hooks/query';
+import { FC } from 'react';
+import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { RefreshControl } from 'react-native-gesture-handler';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { useFetchFavorite } from 'src/hooks/query';
 import useAudioController from 'src/hooks/useAudioController';
-import {getPlayerState} from 'src/store/player';
+import { getPlayerState } from 'src/store/player';
 
 interface Props {}
 
-const FavoriteTab: FC<Props> = props => {
-  const {onGoingAudio} = useSelector(getPlayerState);
-  const {onAudioPress} = useAudioController();
-  const {data, isLoading, isFetching} = useFetchFavorite();
+const FavoriteTab: FC<Props> = () => {
+  const { onGoingAudio } = useSelector(getPlayerState);
+  const { onAudioPress } = useAudioController();
+
+  const { data, isLoading, isFetching } = useFetchFavorite();
   const queryClient = useQueryClient();
 
+  // 🔄 Rafraîchir la liste des favoris
   const handleOnRefresh = () => {
-    queryClient.invalidateQueries({queryKey: ['favorite']});
+    queryClient.invalidateQueries({ queryKey: ['favorite'] });
   };
 
   if (isLoading) return <AudioListLoadingUI />;
@@ -34,20 +36,22 @@ const FavoriteTab: FC<Props> = props => {
           tintColor={colors.CONTRAST}
         />
       }
-      style={styles.container}>
+      style={styles.container}
+    >
+      {/* Aucun favori */}
       {!data?.length ? (
         <EmptyRecords title="There is no favorite audio!" />
       ) : null}
-      {data?.map(item => {
-        return (
-          <AudioListItem
-            onPress={() => onAudioPress(item, data)}
-            key={item.id}
-            audio={item}
-            isPlaying={onGoingAudio?.id === item.id}
-          />
-        );
-      })}
+
+      {/* Liste des favoris */}
+      {data?.map((item) => (
+        <AudioListItem
+          onPress={() => onAudioPress(item, data)}
+          key={item.id}
+          audio={item}
+          isPlaying={onGoingAudio?.id === item.id}
+        />
+      ))}
     </ScrollView>
   );
 };
