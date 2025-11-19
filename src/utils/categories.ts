@@ -1,3 +1,4 @@
+// liste des catégories d'audios
 export const categories = [
   'Arts',
   'Business',
